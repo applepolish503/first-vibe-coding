@@ -10,7 +10,7 @@ export const flowNodeTypes: FlowNodeType[] = [
     icon: '/icons/TruckSource.svg',
     description: 'トラックの発着点',
     category: 'Source',
-    allowedPhysicalTypes: ['warehouse']
+    allowedPhysicalTypes: ['warehouse', 'gate']
   },
   {
     id: 'parking',
@@ -54,6 +54,6 @@ export const flowNodeTypes: FlowNodeType[] = [
     icon: '/icons/Destinations.svg',
     description: '配送先',
     category: 'Destination',
-    allowedPhysicalTypes: []
+    allowedPhysicalTypes: ['warehouse', 'gate']
   }
 ]; 

@@ -227,6 +227,7 @@ const customNodeTypes = {
   tmpStorage: CustomNode,
   destinations: CustomNode,
   warehouse: CustomNode,
+  gate: CustomNode,
   carStop: CustomNode,
   pallet: CustomNode,
   storageArea: CustomNode,

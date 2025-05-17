@@ -32,13 +32,13 @@ export const physicalNodeTypes: FlowNodeType[] = [
     category: 'Facility'
   },
   {
-    id: 'storageArea',
-    label: 'Storage Area',
-    backgroundColor: '#9C27B0',
+    id: 'gate',
+    label: 'Gate',
+    backgroundColor: '#673AB7',
     hasInput: false,
     hasOutput: false,
-    icon: '/icons/StorageArea.svg',
-    description: 'Storage Area',
-    category: 'Area'
+    icon: './icons/Gate.svg',
+    description: '施設の出入口ゲート',
+    category: 'Facility'
   }
 ]; 
