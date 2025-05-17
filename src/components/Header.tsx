@@ -148,7 +148,7 @@ const Header: React.FC<HeaderProps> = ({
           cursor: 'pointer'
         }}
       >
-        Flow保存
+        Save Flow
       </button>
       <button
         onClick={handlePhysicalDownload}
@@ -161,7 +161,7 @@ const Header: React.FC<HeaderProps> = ({
           cursor: 'pointer'
         }}
       >
-        Physical保存
+        Save Physical
       </button>
       <button
         onClick={handleRelationDownload}
@@ -174,7 +174,7 @@ const Header: React.FC<HeaderProps> = ({
           cursor: 'pointer'
         }}
       >
-        Relation保存
+        Save Relations
       </button>
       <label
         style={{
@@ -186,7 +186,7 @@ const Header: React.FC<HeaderProps> = ({
           cursor: 'pointer'
         }}
       >
-        ファイルアップロード
+        Upload Files
         <input
           type="file"
           multiple
