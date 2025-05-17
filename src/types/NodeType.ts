@@ -15,18 +15,22 @@ export interface NodeType {
   /** アイコンのパス */
   icon?: string;
   /** ノードの説明 */
-  description?: string;
+  description: string;
   /** ノードのカテゴリ */
   category: string;
+}
+
+export interface NodeData {
+  label: string;
+  icon?: string;
+  isHighlighted?: boolean;
+  dimmed?: boolean;
 }
 
 /**
  * カスタムノードのプロパティ定義
  */
 export interface CustomNodeProps {
-  data: {
-    label: string;
-    icon?: string;
-  };
+  data: NodeData;
   type?: string;
 } 
