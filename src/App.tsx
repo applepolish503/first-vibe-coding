@@ -5,10 +5,11 @@
 
 import { ReactFlow, Controls, Background, useNodesState, useEdgesState, addEdge, MiniMap, ReactFlowProvider, Handle, Position, applyNodeChanges } from '@xyflow/react';
 import type { Node, Edge, Connection, NodeChange, EdgeChange, OnNodesChange } from '@xyflow/react';
-import type { FlowNodeType, CustomNodeProps, NodeData } from './types/NodeType';
+import type { FlowNodeType, CustomNodeProps, NodeData, PhysicalNodeType } from './types/NodeType';
 import { flowNodeTypes } from './constants/nodeTypes';
 import { physicalNodeTypes } from './constants/physicalNodeTypes';
 import NodeContextWindow from './components/NodeContextWindow';
+import Header from './components/Header';
 import '@xyflow/react/dist/style.css';
 import { useState, useEffect, useCallback, useRef } from 'react';
 
@@ -419,7 +420,7 @@ const NodeAssignmentModal: React.FC<NodeAssignmentModalProps> = ({
   // 割り当て済みノードの情報を取得
   useEffect(() => {
     const nodes = existingAssignments
-      .map(id => physicalNodes.find((n: Node<NodeData>) => n.id === id))
+      .map(id => physicalNodes.find((n) => n.id === id))
       .filter((n): n is Node<NodeData> => n !== undefined);
     setAssignedNodes(nodes);
   }, [existingAssignments, physicalNodes]);
@@ -611,8 +612,8 @@ function FlowView({
 }: {
   nodes: Node<NodeData>[];
   edges: Edge[];
-  onNodesChange: (changes: NodeChange<NodeData>[]) => void;
-  onNodesDelete: (changes: NodeChange<NodeData>[]) => void;
+  onNodesChange: OnNodesChange<Node<NodeData>>;
+  onNodesDelete: (nodes: Node<NodeData>[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (params: Connection) => void;
   onPaneClick: (event: React.MouseEvent) => void;
@@ -686,7 +687,7 @@ function PhysicalView({
 }: {
   nodes: Node<NodeData>[];
   edges: Edge[];
-  onNodesChange: (changes: NodeChange<NodeData>[]) => void;
+  onNodesChange: OnNodesChange<Node<NodeData>>;
   onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (params: Connection) => void;
   onPaneClick: (event: React.MouseEvent) => void;
@@ -1132,9 +1133,36 @@ function Flow() {
     });
   }, []);
 
+  // ファイルアップロード時の処理
+  const handleFileUpload = useCallback((data: {
+    flow?: { nodes: Node<NodeData>[]; edges: Edge[] };
+    physical?: { nodes: Node<NodeData>[]; edges: Edge[] };
+    relations?: { flowNodeId: string; physicalNodeIds: string[] }[];
+  }) => {
+    if (data.flow) {
+      setFlowNodes(data.flow.nodes);
+      setFlowEdges(data.flow.edges);
+    }
+    if (data.physical) {
+      setPhysicalNodes(data.physical.nodes);
+      setPhysicalEdges(data.physical.edges);
+    }
+    if (data.relations) {
+      setNodeRelations(data.relations);
+    }
+  }, [setFlowNodes, setFlowEdges, setPhysicalNodes, setPhysicalEdges]);
+
   return (
     <div style={{ width: '100vw', height: '100vh', display: 'flex' }}>
       <AnimationStyles />
+      <Header
+        flowNodes={flowNodes}
+        flowEdges={flowEdges}
+        physicalNodes={physicalNodes}
+        physicalEdges={physicalEdges}
+        nodeRelations={nodeRelations}
+        onFileUpload={handleFileUpload}
+      />
       {/* サイドバー */}
       <div style={{
         width: '360px',
@@ -1175,6 +1203,7 @@ function Flow() {
             nodes={flowNodes}
             edges={flowEdges}
             onNodesChange={onFlowNodesChange}
+            onNodesDelete={onNodesDelete}
             onEdgesChange={onFlowEdgesChange}
             onConnect={(params) => onConnect(params, 'flow')}
             onPaneClick={(event) => onPaneClick(event, 'flow')}
