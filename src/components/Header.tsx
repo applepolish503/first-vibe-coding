@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Node, Edge } from '@xyflow/react';
 import type { NodeData } from '../types/NodeType';
+import { theme } from '../styles/theme';
 
 interface HeaderProps {
   flowNodes: Node<NodeData>[];
@@ -14,6 +15,21 @@ interface HeaderProps {
     relations?: { flowNodeId: string; physicalNodeIds: string[] }[];
   }) => void;
 }
+
+const buttonBaseStyle = {
+  padding: theme.components.button.padding,
+  borderRadius: theme.components.button.borderRadius,
+  fontSize: theme.components.button.fontSize,
+  fontWeight: theme.components.button.fontWeight,
+  transition: theme.components.button.transition,
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  color: theme.colors.text.primary,
+  border: 'none',
+  cursor: 'pointer',
+  boxShadow: theme.common.shadow.sm,
+};
 
 const Header: React.FC<HeaderProps> = ({
   flowNodes,
@@ -130,62 +146,101 @@ const Header: React.FC<HeaderProps> = ({
       position: 'fixed',
       top: 0,
       right: 0,
-      padding: '10px',
-      background: 'white',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+      padding: '16px',
+      background: theme.colors.background.secondary,
+      boxShadow: theme.common.shadow.md,
+      borderBottom: `1px solid ${theme.colors.border.primary}`,
+      borderLeft: `1px solid ${theme.colors.border.primary}`,
+      borderBottomLeftRadius: theme.common.borderRadius.lg,
       zIndex: 1000,
       display: 'flex',
-      gap: '10px'
+      gap: '12px',
     }}>
       <button
         onClick={handleFlowDownload}
         style={{
-          padding: '8px 16px',
-          backgroundColor: '#6865A5',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer'
+          ...buttonBaseStyle,
+          backgroundColor: theme.colors.accent.blue,
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = theme.colors.primary;
+          e.currentTarget.style.transform = 'translateY(-1px)';
+          e.currentTarget.style.boxShadow = theme.common.shadow.md;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = theme.colors.accent.blue;
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = theme.common.shadow.sm;
         }}
       >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+        </svg>
         Save Flow
       </button>
       <button
         onClick={handlePhysicalDownload}
         style={{
-          padding: '8px 16px',
-          backgroundColor: '#6865A5',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer'
+          ...buttonBaseStyle,
+          backgroundColor: theme.colors.accent.purple,
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = theme.colors.secondary;
+          e.currentTarget.style.transform = 'translateY(-1px)';
+          e.currentTarget.style.boxShadow = theme.common.shadow.md;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = theme.colors.accent.purple;
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = theme.common.shadow.sm;
         }}
       >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+        </svg>
         Save Physical
       </button>
       <button
         onClick={handleRelationDownload}
         style={{
-          padding: '8px 16px',
-          backgroundColor: '#6865A5',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer'
+          ...buttonBaseStyle,
+          backgroundColor: theme.colors.accent.green,
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = theme.colors.primary;
+          e.currentTarget.style.transform = 'translateY(-1px)';
+          e.currentTarget.style.boxShadow = theme.common.shadow.md;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = theme.colors.accent.green;
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = theme.common.shadow.sm;
         }}
       >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+        </svg>
         Save Relations
       </button>
       <label
         style={{
-          padding: '8px 16px',
-          backgroundColor: '#6865A5',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer'
+          ...buttonBaseStyle,
+          backgroundColor: theme.colors.accent.blue,
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = theme.colors.secondary;
+          e.currentTarget.style.transform = 'translateY(-1px)';
+          e.currentTarget.style.boxShadow = theme.common.shadow.md;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = theme.colors.accent.blue;
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = theme.common.shadow.sm;
         }}
       >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+        </svg>
         Upload Files
         <input
           type="file"

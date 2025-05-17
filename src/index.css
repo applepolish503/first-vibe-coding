@@ -8,4 +8,48 @@ body {
   width: 100vw;
   height: 100vh;
 }
+
+/* ReactFlowコントロールのカスタマイズ */
+.react-flow__controls-custom {
+  box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.1);
+}
+
+.react-flow__controls-custom button {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border: 1px solid #475569 !important;
+  width: 32px !important;
+  height: 32px !important;
+  margin: 2px !important;
+  border-radius: 6px !important;
+  transition: all 0.2s ease !important;
+}
+
+.react-flow__controls-custom button:hover {
+  background-color: #334155 !important;
+  border-color: #38bdf8 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.react-flow__controls-custom button path {
+  fill: #f8fafc !important;
+  stroke: #f8fafc !important;
+}
+
+.react-flow__controls-custom button.react-flow__controls-interactive {
+  background-color: #1e40af !important;
+}
+
+.react-flow__controls-custom button.react-flow__controls-interactive:hover {
+  background-color: #2563eb !important;
+}
+
+.react-flow__controls-custom button.react-flow__controls-fitview {
+  background-color: #1e3a8a !important;
+}
+
+.react-flow__controls-custom button.react-flow__controls-fitview:hover {
+  background-color: #1d4ed8 !important;
+}
  

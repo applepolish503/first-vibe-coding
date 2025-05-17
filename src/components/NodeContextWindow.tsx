@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { theme } from '../styles/theme';
 import type { FlowNodeType } from '../types/NodeType';
 import { physicalNodeTypes } from '../constants/physicalNodeTypes';
 
@@ -43,183 +44,145 @@ const NodeContextWindow: React.FC<NodeContextWindowProps> = ({
     <div
       ref={windowRef}
       style={{
-        position: 'fixed',
+        position: 'absolute',
         left: position.x,
         top: position.y,
-        backgroundColor: 'white',
-        border: `2px solid ${node.backgroundColor}`,
-        borderRadius: '12px',
+        backgroundColor: theme.colors.background.secondary,
+        border: `1px solid ${theme.colors.border.secondary}`,
+        borderRadius: theme.common.borderRadius.lg,
         padding: '20px',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
-        zIndex: 1000,
-        minWidth: '320px',
+        minWidth: '300px',
         maxWidth: '400px',
+        boxShadow: theme.common.shadow.lg,
+        zIndex: 1000,
+        color: theme.colors.text.primary,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
-        <div style={{ 
-          backgroundColor: node.backgroundColor + '20',
-          padding: '8px',
-          borderRadius: '8px',
-          marginRight: '12px'
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        marginBottom: '20px',
+        padding: '0 0 15px 0',
+        borderBottom: `1px solid ${theme.colors.border.primary}`,
+      }}>
+        <img
+          src={node.icon}
+          alt={node.label}
+          style={{
+            width: '32px',
+            height: '32px',
+            marginRight: '12px',
+          }}
+        />
+        <h3 style={{
+          margin: 0,
+          color: theme.colors.text.primary,
+          fontSize: '1.2em',
+          flex: 1,
         }}>
-          <img src={node.icon} alt={node.label} style={{ width: '32px', height: '32px' }} />
-        </div>
-        <h3 style={{ margin: 0, color: node.backgroundColor, fontSize: '1.4em' }}>{node.label}</h3>
+          {node.label}
+        </h3>
         <button
           onClick={onClose}
           style={{
-            position: 'absolute',
-            right: '12px',
-            top: '12px',
             background: 'none',
             border: 'none',
+            color: theme.colors.text.secondary,
             cursor: 'pointer',
-            fontSize: '20px',
-            color: '#666',
             padding: '4px',
-            borderRadius: '4px',
+            borderRadius: theme.common.borderRadius.sm,
             transition: 'all 0.2s ease',
           }}
-          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
-          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = theme.colors.text.primary;
+            e.currentTarget.style.backgroundColor = theme.colors.background.tertiary;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = theme.colors.text.secondary;
+            e.currentTarget.style.backgroundColor = 'transparent';
+          }}
         >
           ✕
         </button>
       </div>
 
-      <div style={{ 
-        display: 'flex', 
-        gap: '8px', 
-        marginBottom: '16px',
-        borderBottom: '1px solid #eee',
-        paddingBottom: '8px'
+      <div style={{
+        marginBottom: '20px',
+        color: theme.colors.text.secondary,
+        fontSize: '0.9em',
+        lineHeight: '1.5',
       }}>
-        <button
-          onClick={() => setSelectedTab('info')}
-          style={{
-            padding: '8px 16px',
-            border: 'none',
-            borderRadius: '6px',
-            background: selectedTab === 'info' ? node.backgroundColor + '20' : 'transparent',
-            color: selectedTab === 'info' ? node.backgroundColor : '#666',
-            cursor: 'pointer',
-            fontWeight: selectedTab === 'info' ? 'bold' : 'normal',
-            transition: 'all 0.2s ease',
-          }}
-        >
-          情報
-        </button>
-        <button
-          onClick={() => setSelectedTab('assign')}
-          style={{
-            padding: '8px 16px',
-            border: 'none',
-            borderRadius: '6px',
-            background: selectedTab === 'assign' ? node.backgroundColor + '20' : 'transparent',
-            color: selectedTab === 'assign' ? node.backgroundColor : '#666',
-            cursor: 'pointer',
-            fontWeight: selectedTab === 'assign' ? 'bold' : 'normal',
-            transition: 'all 0.2s ease',
-          }}
-        >
-          割り当て管理
-        </button>
+        {node.description}
       </div>
-      
-      {selectedTab === 'info' ? (
-        <>
-          <div style={{ marginBottom: '16px' }}>
-            <p style={{ margin: '0 0 12px 0', color: '#444', lineHeight: '1.5' }}>{node.description}</p>
-          </div>
-          
-          <div style={{ 
-            display: 'flex', 
-            gap: '16px', 
-            fontSize: '14px', 
-            color: '#666',
-            backgroundColor: '#f8f8f8',
-            padding: '12px',
-            borderRadius: '8px'
+
+      <div style={{
+        backgroundColor: theme.colors.background.tertiary,
+        padding: '15px',
+        borderRadius: theme.common.borderRadius.md,
+        marginBottom: '20px',
+      }}>
+        <h4 style={{
+          margin: '0 0 10px 0',
+          color: theme.colors.text.primary,
+          fontSize: '1em',
+        }}>
+          プロパティ
+        </h4>
+        <div style={{
+          display: 'grid',
+          gap: '8px',
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            padding: '8px',
+            backgroundColor: theme.colors.background.secondary,
+            borderRadius: theme.common.borderRadius.sm,
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ 
-                width: '8px', 
-                height: '8px', 
-                borderRadius: '50%',
-                backgroundColor: node.hasInput ? '#4CAF50' : '#ff5252'
-              }} />
-              入力ポート: {node.hasInput ? '有り' : '無し'}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ 
-                width: '8px', 
-                height: '8px', 
-                borderRadius: '50%',
-                backgroundColor: node.hasOutput ? '#4CAF50' : '#ff5252'
-              }} />
-              出力ポート: {node.hasOutput ? '有り' : '無し'}
-            </div>
+            <span style={{ color: theme.colors.text.secondary }}>タイプ:</span>
+            <span style={{ color: theme.colors.accent.blue }}>{node.id}</span>
           </div>
-        </>
-      ) : (
-        <div>
-          <p style={{ margin: '0 0 16px 0', color: '#666' }}>
-            このノードに割り当て可能な物理ブロック:
-          </p>
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-            gap: '12px'
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            padding: '8px',
+            backgroundColor: theme.colors.background.secondary,
+            borderRadius: theme.common.borderRadius.sm,
           }}>
-            {allowedPhysicalNodes.map(pNode => {
-              const isAssigned = assignedNodes.includes(pNode.id);
-              return (
-                <div
-                  key={pNode.id}
-                  style={{
-                    padding: '12px',
-                    borderRadius: '8px',
-                    border: `1px solid ${isAssigned ? pNode.backgroundColor : '#ddd'}`,
-                    backgroundColor: isAssigned ? pNode.backgroundColor + '10' : 'white',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                  }}
-                  onClick={() => {
-                    if (isAssigned) {
-                      onUnassignNode?.(pNode.id);
-                    } else {
-                      onAssignNode?.(pNode.id);
-                    }
-                  }}
-                >
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '8px',
-                    marginBottom: '4px'
-                  }}>
-                    <img src={pNode.icon} alt={pNode.label} style={{ width: '24px', height: '24px' }} />
-                    <span style={{ 
-                      color: isAssigned ? pNode.backgroundColor : '#444',
-                      fontWeight: isAssigned ? 'bold' : 'normal'
-                    }}>
-                      {pNode.label}
-                    </span>
-                  </div>
-                  <div style={{ 
-                    fontSize: '12px', 
-                    color: '#666',
-                    marginTop: '4px'
-                  }}>
-                    {isAssigned ? '割り当て済み' : '未割り当て'}
-                  </div>
-                </div>
-              );
-            })}
+            <span style={{ color: theme.colors.text.secondary }}>カテゴリ:</span>
+            <span style={{ color: theme.colors.accent.purple }}>{node.category}</span>
           </div>
         </div>
-      )}
+      </div>
+
+      <div style={{
+        display: 'flex',
+        gap: '10px',
+        justifyContent: 'flex-end',
+      }}>
+        <button
+          onClick={onClose}
+          style={{
+            backgroundColor: theme.colors.background.tertiary,
+            color: theme.colors.text.primary,
+            border: `1px solid ${theme.colors.border.primary}`,
+            padding: '8px 16px',
+            borderRadius: theme.common.borderRadius.md,
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = theme.colors.background.primary;
+            e.currentTarget.style.borderColor = theme.colors.accent.blue;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = theme.colors.background.tertiary;
+            e.currentTarget.style.borderColor = theme.colors.border.primary;
+          }}
+        >
+          閉じる
+        </button>
+      </div>
     </div>
   );
 };

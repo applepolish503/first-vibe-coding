@@ -10,6 +10,7 @@ import { flowNodeTypes } from './constants/nodeTypes';
 import { physicalNodeTypes } from './constants/physicalNodeTypes';
 import NodeContextWindow from './components/NodeContextWindow';
 import Header from './components/Header';
+import { theme } from './styles/theme';
 import '@xyflow/react/dist/style.css';
 import { useState, useEffect, useCallback, useRef } from 'react';
 
@@ -69,17 +70,18 @@ const AnimationStyles = () => {
  * Flow ViewとPhysical Viewの両方で使用される共通のノード表示コンポーネント
  */
 const CustomNode = ({ data, type = 'default' }: CustomNodeProps) => {
-  // Flow ViewとPhysical Viewのノードタイプを結合して、現在のノードの設定を取得
   const nodeConfig = [...flowNodeTypes, ...physicalNodeTypes].find(nt => nt.id === type) || flowNodeTypes[0];
+  const [isHovered, setIsHovered] = useState(false);
 
-  // ホバー時のハイライト処理
   const handleMouseEnter = useCallback(() => {
+    setIsHovered(true);
     if (data.onNodeHover) {
       data.onNodeHover(type);
     }
   }, [data.onNodeHover, type]);
 
   const handleMouseLeave = useCallback(() => {
+    setIsHovered(false);
     if (data.onNodeHover) {
       data.onNodeHover(null);
     }
@@ -104,8 +106,33 @@ const CustomNode = ({ data, type = 'default' }: CustomNodeProps) => {
       onMouseLeave={handleMouseLeave}
     >
       {/* ハイライト表示用の背景 */}
-      {data.isHighlighted && (
-        <div className="node-highlight-background" />
+      {(data.isHighlighted || isHovered) && (
+        <div style={{
+          position: 'absolute',
+          top: '-8px',
+          left: '-8px',
+          width: 'calc(100% + 16px)',
+          height: 'calc(100% + 16px)',
+          backgroundColor: isHovered 
+            ? theme.colors.highlight.hover 
+            : type.includes('physical') 
+              ? theme.colors.highlight.secondary 
+              : theme.colors.highlight.primary,
+          borderRadius: theme.common.borderRadius.lg,
+          opacity: 1,
+          animation: 'highlight-glow 2s ease-in-out infinite',
+          pointerEvents: 'none',
+          zIndex: -1,
+          boxShadow: `0 0 20px ${
+            isHovered 
+              ? theme.colors.highlight.hoverGlow
+              : type.includes('physical') 
+                ? theme.colors.accent.purple 
+                : theme.colors.accent.blue
+          }`,
+          transition: 'all 0.3s ease',
+          transform: (data.isHighlighted || isHovered) ? 'scale(1.05)' : 'scale(1)',
+        }} />
       )}
       
       {/* 入力コネクタ */}
@@ -114,11 +141,13 @@ const CustomNode = ({ data, type = 'default' }: CustomNodeProps) => {
           type="target"
           position={Position.Left}
           style={{
-            background: '#555',
+            background: isHovered ? theme.colors.highlight.hover : theme.colors.accent.blue,
             width: '16px',
             height: '16px',
             left: '-8px',
             zIndex: 100,
+            transition: 'all 0.3s ease',
+            transform: isHovered ? 'scale(1.2)' : 'scale(1)',
           }}
         />
       )}
@@ -132,8 +161,8 @@ const CustomNode = ({ data, type = 'default' }: CustomNodeProps) => {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        opacity: data.isHighlighted ? 1 : data.dimmed ? 0.4 : 1,
-        transform: data.isHighlighted ? 'scale(1.05)' : 'scale(1)',
+        opacity: data.isHighlighted || isHovered ? 1 : data.dimmed ? 0.4 : 1,
+        transform: (data.isHighlighted || isHovered) ? 'scale(1.05)' : 'scale(1)',
         transition: 'all 0.3s ease',
       }}>
         {/* ノードのアイコン */}
@@ -147,6 +176,7 @@ const CustomNode = ({ data, type = 'default' }: CustomNodeProps) => {
               objectFit: 'contain',
               userSelect: 'none',
               pointerEvents: 'none',
+              filter: data.isHighlighted || isHovered ? 'brightness(1.2)' : 'none',
             }}
           />
         )}
@@ -158,8 +188,9 @@ const CustomNode = ({ data, type = 'default' }: CustomNodeProps) => {
           width: '100%',
           textAlign: 'center',
           fontSize: '12px',
-          color: '#666',
-          fontWeight: data.isHighlighted ? 'bold' : 'normal',
+          color: theme.colors.text.primary,
+          fontWeight: data.isHighlighted || isHovered ? 'bold' : 'normal',
+          textShadow: data.isHighlighted || isHovered ? '0 0 10px rgba(255, 255, 255, 0.5)' : 'none',
         }}>
           {data.label}
         </div>
@@ -171,11 +202,13 @@ const CustomNode = ({ data, type = 'default' }: CustomNodeProps) => {
           type="source"
           position={Position.Right}
           style={{
-            background: '#555',
+            background: isHovered ? theme.colors.highlight.hover : theme.colors.accent.blue,
             width: '16px',
             height: '16px',
             right: '-8px',
             zIndex: 100,
+            transition: 'all 0.3s ease',
+            transform: isHovered ? 'scale(1.2)' : 'scale(1)',
           }}
         />
       )}
@@ -204,17 +237,16 @@ const customNodeTypes = {
  * サイドバーに表示されるノードタイプの一覧を管理
  */
 const NodeCategory = ({ category, nodes, selectedNodeType, onSelectNodeType }: NodeCategoryProps) => {
-  // 指定されたカテゴリに属するノードをフィルタリング
   const categoryNodes = nodes.filter(node => node.category === category);
   
   return (
     <div style={{ marginBottom: '30px' }}>
       <h4 style={{ 
         marginBottom: '15px', 
-        color: '#666',
+        color: theme.colors.text.primary,
         fontSize: '1.2em',
         paddingBottom: '8px',
-        borderBottom: '1px solid #dee2e6'
+        borderBottom: `1px solid ${theme.colors.border.primary}`
       }}>{category}</h4>
       <div style={{ 
         display: 'grid',
@@ -232,6 +264,7 @@ const NodeCategory = ({ category, nodes, selectedNodeType, onSelectNodeType }: N
               flexDirection: 'column',
               alignItems: 'center',
               cursor: 'pointer',
+              transition: 'all 0.2s ease',
             }}
           >
             {/* ノードタイプの表示 */}
@@ -241,25 +274,49 @@ const NodeCategory = ({ category, nodes, selectedNodeType, onSelectNodeType }: N
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: type === selectedNodeType ? type.backgroundColor : 'transparent',
-              borderRadius: '12px',
+              backgroundColor: type === selectedNodeType ? theme.colors.selection.active : 'transparent',
+              borderRadius: theme.common.borderRadius.lg,
               transition: 'all 0.2s ease',
-              border: type === selectedNodeType ? '2px solid ' + type.backgroundColor : '2px solid transparent',
-            }}>
+              border: type === selectedNodeType 
+                ? `2px solid ${theme.colors.accent.blue}` 
+                : '2px solid transparent',
+              boxShadow: type === selectedNodeType 
+                ? `0 0 15px ${theme.colors.accent.blue}` 
+                : 'none',
+            }}
+            onMouseEnter={(e) => {
+              if (type !== selectedNodeType) {
+                e.currentTarget.style.backgroundColor = theme.colors.selection.hover;
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (type !== selectedNodeType) {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }
+            }}
+            >
               {type.icon && (
                 <img
                   src={type.icon}
                   alt={type.label}
-                  style={{ width: '128px', height: '128px' }}
+                  style={{ 
+                    width: '128px', 
+                    height: '128px',
+                    filter: type === selectedNodeType ? 'brightness(1.2)' : 'none',
+                    transition: 'all 0.2s ease',
+                  }}
                 />
               )}
             </div>
             <div style={{
               marginTop: '8px',
               fontSize: '0.9em',
-              fontWeight: 'bold',
-              color: type === selectedNodeType ? type.backgroundColor : '#666',
+              fontWeight: type === selectedNodeType ? 'bold' : 'normal',
+              color: type === selectedNodeType ? theme.colors.accent.blue : theme.colors.text.secondary,
               textAlign: 'center',
+              transition: 'all 0.2s ease',
             }}>
               {type.label}
             </div>
@@ -269,10 +326,10 @@ const NodeCategory = ({ category, nodes, selectedNodeType, onSelectNodeType }: N
               top: '50%',
               left: '100%',
               transform: 'translateY(-50%)',
-              backgroundColor: 'rgba(0, 0, 0, 0.8)',
-              color: 'white',
+              backgroundColor: theme.colors.background.tertiary,
+              color: theme.colors.text.primary,
               padding: '8px 12px',
-              borderRadius: '6px',
+              borderRadius: theme.common.borderRadius.md,
               fontSize: '0.9em',
               maxWidth: '200px',
               visibility: 'hidden',
@@ -281,6 +338,8 @@ const NodeCategory = ({ category, nodes, selectedNodeType, onSelectNodeType }: N
               zIndex: 1000,
               pointerEvents: 'none',
               marginLeft: '10px',
+              border: `1px solid ${theme.colors.border.primary}`,
+              boxShadow: theme.common.shadow.md,
             }} className="node-tooltip">
               {type.description}
             </div>
@@ -431,25 +490,32 @@ const NodeAssignmentModal: React.FC<NodeAssignmentModalProps> = ({
         position: 'absolute',
         left: position.x,
         top: position.y,
-        backgroundColor: 'white',
-        border: '2px solid #6865A5',
-        borderRadius: '8px',
+        backgroundColor: theme.colors.background.secondary,
+        border: `1px solid ${theme.colors.border.secondary}`,
+        borderRadius: theme.common.borderRadius.lg,
         padding: '16px',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+        boxShadow: theme.common.shadow.lg,
         zIndex: 1000,
         minWidth: '300px',
+        color: theme.colors.text.primary,
       }}
     >
-      <h3 style={{ marginTop: 0, marginBottom: '16px' }}>Physical Block Assignment</h3>
+      <h3 style={{ 
+        marginTop: 0, 
+        marginBottom: '16px',
+        color: theme.colors.text.primary,
+        borderBottom: `1px solid ${theme.colors.border.primary}`,
+        paddingBottom: '10px'
+      }}>Physical Block Assignment</h3>
       
       {/* 現在のFlowノードタイプの表示 */}
       <div style={{ marginBottom: '16px' }}>
         <div style={{ 
           fontSize: '14px', 
-          color: '#666',
+          color: theme.colors.text.secondary,
           padding: '8px',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '4px',
+          backgroundColor: theme.colors.background.tertiary,
+          borderRadius: theme.common.borderRadius.md,
           display: 'flex',
           alignItems: 'center',
           gap: '8px'
@@ -465,7 +531,12 @@ const NodeAssignmentModal: React.FC<NodeAssignmentModalProps> = ({
 
       {/* 新規割り当て用のノードタイプ選択 */}
       <div style={{ marginBottom: '20px' }}>
-        <h4 style={{ marginTop: 0, marginBottom: '8px', fontSize: '14px' }}>New Assignment</h4>
+        <h4 style={{ 
+          marginTop: 0, 
+          marginBottom: '8px', 
+          fontSize: '14px',
+          color: theme.colors.text.primary
+        }}>New Assignment</h4>
         {availablePhysicalTypes.length > 0 ? (
           <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
             {availablePhysicalTypes.map(type => (
@@ -477,8 +548,11 @@ const NodeAssignmentModal: React.FC<NodeAssignmentModalProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  backgroundColor: selectedType?.id === type.id ? '#f8f9fa' : 'transparent',
-                  borderRadius: '4px',
+                  backgroundColor: selectedType?.id === type.id 
+                    ? theme.colors.background.tertiary 
+                    : theme.colors.background.secondary,
+                  borderRadius: theme.common.borderRadius.md,
+                  border: `1px solid ${theme.colors.border.primary}`,
                 }}
               >
                 <div
@@ -492,18 +566,29 @@ const NodeAssignmentModal: React.FC<NodeAssignmentModalProps> = ({
                   }}
                 >
                   <img src={type.icon} alt={type.label} style={{ width: '24px', height: '24px' }} />
-                  <span>{type.label}</span>
+                  <span style={{ color: theme.colors.text.primary }}>{type.label}</span>
                 </div>
                 <button
                   onClick={() => onAssign(type)}
                   style={{
                     padding: '4px 8px',
-                    border: 'none',
-                    borderRadius: '4px',
-                    backgroundColor: '#6865A5',
-                    color: 'white',
+                    border: `1px solid ${theme.colors.accent.blue}`,
+                    borderRadius: theme.common.borderRadius.sm,
+                    backgroundColor: theme.colors.accent.blue,
+                    color: theme.colors.text.primary,
                     cursor: 'pointer',
                     fontSize: '12px',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = theme.colors.background.tertiary;
+                    e.currentTarget.style.borderColor = theme.colors.accent.blue;
+                    e.currentTarget.style.color = theme.colors.accent.blue;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = theme.colors.accent.blue;
+                    e.currentTarget.style.borderColor = theme.colors.accent.blue;
+                    e.currentTarget.style.color = theme.colors.text.primary;
                   }}
                 >
                   Add
@@ -515,9 +600,9 @@ const NodeAssignmentModal: React.FC<NodeAssignmentModalProps> = ({
           <div style={{ 
             padding: '12px', 
             textAlign: 'center', 
-            color: '#666',
-            backgroundColor: '#f8f9fa',
-            borderRadius: '4px'
+            color: theme.colors.text.secondary,
+            backgroundColor: theme.colors.background.tertiary,
+            borderRadius: theme.common.borderRadius.md
           }}>
             No physical blocks available for assignment
           </div>
@@ -527,13 +612,19 @@ const NodeAssignmentModal: React.FC<NodeAssignmentModalProps> = ({
       {/* 既存の割り当て一覧 */}
       {assignedNodes.length > 0 && (
         <div style={{ marginBottom: '16px' }}>
-          <h4 style={{ marginTop: 0, marginBottom: '8px', fontSize: '14px' }}>Current Assignments</h4>
+          <h4 style={{ 
+            marginTop: 0, 
+            marginBottom: '8px', 
+            fontSize: '14px',
+            color: theme.colors.text.primary
+          }}>Current Assignments</h4>
           <div style={{ 
             maxHeight: '100px', 
             overflowY: 'auto',
-            border: '1px solid #eee',
-            borderRadius: '4px',
-            padding: '8px'
+            border: `1px solid ${theme.colors.border.primary}`,
+            borderRadius: theme.common.borderRadius.md,
+            padding: '8px',
+            backgroundColor: theme.colors.background.tertiary,
           }}>
             {assignedNodes.map(node => (
               <div
@@ -542,13 +633,19 @@ const NodeAssignmentModal: React.FC<NodeAssignmentModalProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '4px',
+                  padding: '8px',
                   marginBottom: '4px',
-                  backgroundColor: '#f8f9fa',
-                  borderRadius: '4px'
+                  backgroundColor: theme.colors.background.secondary,
+                  borderRadius: theme.common.borderRadius.sm,
+                  border: `1px solid ${theme.colors.border.primary}`,
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '8px',
+                  color: theme.colors.text.primary
+                }}>
                   <img 
                     src={physicalNodeTypes.find(t => t.id === node.type)?.icon || ''} 
                     alt={node.data?.label || ''} 
@@ -561,10 +658,18 @@ const NodeAssignmentModal: React.FC<NodeAssignmentModalProps> = ({
                   style={{
                     border: 'none',
                     background: 'none',
-                    color: '#dc3545',
+                    color: theme.colors.accent.red,
                     cursor: 'pointer',
-                    padding: '4px',
-                    fontSize: '12px'
+                    padding: '4px 8px',
+                    fontSize: '12px',
+                    borderRadius: theme.common.borderRadius.sm,
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = theme.colors.background.tertiary;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
                   }}
                 >
                   Remove
@@ -576,15 +681,32 @@ const NodeAssignmentModal: React.FC<NodeAssignmentModalProps> = ({
       )}
 
       {/* モーダルのフッター */}
-      <div style={{ marginTop: '16px', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+      <div style={{ 
+        marginTop: '16px', 
+        display: 'flex', 
+        gap: '8px', 
+        justifyContent: 'flex-end',
+        borderTop: `1px solid ${theme.colors.border.primary}`,
+        paddingTop: '16px'
+      }}>
         <button
           onClick={onClose}
           style={{
             padding: '8px 16px',
-            border: 'none',
-            borderRadius: '4px',
+            border: `1px solid ${theme.colors.border.primary}`,
+            borderRadius: theme.common.borderRadius.md,
+            backgroundColor: theme.colors.background.tertiary,
+            color: theme.colors.text.primary,
             cursor: 'pointer',
-            backgroundColor: '#f0f0f0',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = theme.colors.background.primary;
+            e.currentTarget.style.borderColor = theme.colors.accent.blue;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = theme.colors.background.tertiary;
+            e.currentTarget.style.borderColor = theme.colors.border.primary;
           }}
         >
           Close
@@ -626,9 +748,9 @@ function FlowView({
       <div 
         style={{ 
           height: '50vh',
-          borderBottom: '1px solid #dee2e6',
+          borderBottom: `1px solid ${theme.colors.border.primary}`,
           position: 'relative',
-          backgroundColor: isActive ? '#f8f9fa' : '#fff',
+          backgroundColor: isActive ? theme.colors.background.secondary : theme.colors.background.primary,
         }}
       >
         <div style={{
@@ -636,9 +758,9 @@ function FlowView({
           top: 10,
           left: 10,
           padding: '4px 8px',
-          backgroundColor: isActive ? '#6865A5' : '#ccc',
-          color: 'white',
-          borderRadius: '4px',
+          backgroundColor: isActive ? theme.colors.accent.blue : theme.colors.background.tertiary,
+          color: theme.colors.text.primary,
+          borderRadius: theme.common.borderRadius.sm,
           fontSize: '12px',
           zIndex: 5,
         }}>
@@ -660,10 +782,27 @@ function FlowView({
           maxZoom={1.5}
           defaultViewport={{ x: 0, y: 0, zoom: 0.1 }}
           deleteKeyCode="Delete"
+          style={{
+            backgroundColor: theme.colors.background.primary
+          }}
         >
-          <Background />
-          <Controls />
-          <MiniMap />
+          <Background color={theme.colors.border.primary} />
+          <Controls 
+            style={{
+              backgroundColor: theme.colors.background.secondary,
+              borderRadius: theme.common.borderRadius.md,
+              border: `1px solid ${theme.colors.border.secondary}`,
+              boxShadow: theme.common.shadow.md,
+            }}
+            className="react-flow__controls-custom"
+          />
+          <MiniMap
+            style={{
+              backgroundColor: theme.colors.background.tertiary,
+              border: `1px solid ${theme.colors.border.primary}`,
+            }}
+            nodeColor={theme.colors.accent.blue}
+          />
         </ReactFlow>
       </div>
     </ReactFlowProvider>
@@ -701,7 +840,7 @@ function PhysicalView({
         style={{ 
           height: '50vh',
           position: 'relative',
-          backgroundColor: isActive ? '#f8f9fa' : '#fff',
+          backgroundColor: isActive ? theme.colors.background.secondary : theme.colors.background.primary,
         }}
       >
         <div style={{
@@ -709,9 +848,9 @@ function PhysicalView({
           top: 10,
           left: 10,
           padding: '4px 8px',
-          backgroundColor: isActive ? '#6865A5' : '#ccc',
-          color: 'white',
-          borderRadius: '4px',
+          backgroundColor: isActive ? theme.colors.accent.purple : theme.colors.background.tertiary,
+          color: theme.colors.text.primary,
+          borderRadius: theme.common.borderRadius.sm,
           fontSize: '12px',
           zIndex: 5,
         }}>
@@ -732,10 +871,27 @@ function PhysicalView({
           maxZoom={1.5}
           defaultViewport={{ x: 0, y: 0, zoom: 0.1 }}
           deleteKeyCode="Delete"
+          style={{
+            backgroundColor: theme.colors.background.primary
+          }}
         >
-          <Background />
-          <Controls />
-          <MiniMap />
+          <Background color={theme.colors.border.primary} />
+          <Controls 
+            style={{
+              backgroundColor: theme.colors.background.secondary,
+              borderRadius: theme.common.borderRadius.md,
+              border: `1px solid ${theme.colors.border.secondary}`,
+              boxShadow: theme.common.shadow.md,
+            }}
+            className="react-flow__controls-custom"
+          />
+          <MiniMap
+            style={{
+              backgroundColor: theme.colors.background.tertiary,
+              border: `1px solid ${theme.colors.border.primary}`,
+            }}
+            nodeColor={theme.colors.accent.purple}
+          />
         </ReactFlow>
       </div>
     </ReactFlowProvider>
@@ -1153,7 +1309,13 @@ function Flow() {
   }, [setFlowNodes, setFlowEdges, setPhysicalNodes, setPhysicalEdges]);
 
   return (
-    <div style={{ width: '100vw', height: '100vh', display: 'flex' }}>
+    <div style={{ 
+      width: '100vw', 
+      height: '100vh', 
+      display: 'flex',
+      backgroundColor: theme.colors.background.primary,
+      color: theme.colors.text.primary
+    }}>
       <AnimationStyles />
       <Header
         flowNodes={flowNodes}
@@ -1165,18 +1327,18 @@ function Flow() {
       />
       {/* サイドバー */}
       <div style={{
-        width: '360px',
-        padding: '20px',
-        backgroundColor: '#f8f9fa',
-        borderRight: '1px solid #dee2e6',
+        width: theme.components.sidebar.width,
+        padding: theme.components.sidebar.padding,
+        backgroundColor: theme.colors.background.secondary,
+        borderRight: `1px solid ${theme.colors.border.primary}`,
         overflowY: 'auto'
       }}>
         <h3 style={{ 
           marginBottom: '25px',
           fontSize: '1.4em',
-          color: '#333',
+          color: theme.colors.text.primary,
           paddingBottom: '10px',
-          borderBottom: '2px solid #dee2e6'
+          borderBottom: `2px solid ${theme.colors.border.secondary}`
         }}>{activeView === 'flow' ? 'Flow View Blocks' : 'Physical View Blocks'}</h3>
         {categories.map(category => (
           <NodeCategory
@@ -1195,7 +1357,8 @@ function Flow() {
           display: 'flex', 
           flexDirection: 'column',
           height: '100vh',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          backgroundColor: theme.colors.background.primary
         }}
       >
         <div onClick={() => setActiveView('flow')}>
