@@ -1,4 +1,4 @@
-import { NodeBase } from '@xyflow/react';
+import type { Node } from '@xyflow/react';
 
 /**
  * ノードタイプの定義インターフェース
@@ -27,12 +27,11 @@ export interface FlowNodeType {
 export interface NodeData {
   label: string;
   icon?: string;
+  allowedPhysicalTypes?: string[];
   isHighlighted?: boolean;
   dimmed?: boolean;
+  serialNumber?: number;
   onNodeHover?: (nodeType: string | null) => void;
-  allowedPhysicalTypes?: string[];
-  data?: Record<string, unknown>;
-  [key: string]: unknown;
 }
 
 /**
@@ -41,4 +40,7 @@ export interface NodeData {
 export interface CustomNodeProps {
   data: NodeData;
   type?: string;
-} 
+}
+
+// PhysicalNodeTypeをFlowNodeTypeと同じ形式で定義
+export type PhysicalNodeType = FlowNodeType; 

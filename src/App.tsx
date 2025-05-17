@@ -341,7 +341,7 @@ const initialFlowEdges: Edge[] = [
  */
 const initialPhysicalNodes: Node<NodeData>[] = [
   {
-    id: 'p1',
+    id: 'phy1',
     position: { x: 100, y: 50 },
     data: { label: 'Warehouse' },
     type: 'warehouse',
@@ -601,6 +601,7 @@ function FlowView({
   nodes,
   edges,
   onNodesChange,
+  onNodesDelete,
   onEdgesChange,
   onConnect,
   onPaneClick,
@@ -611,6 +612,7 @@ function FlowView({
   nodes: Node<NodeData>[];
   edges: Edge[];
   onNodesChange: (changes: NodeChange<NodeData>[]) => void;
+  onNodesDelete: (changes: NodeChange<NodeData>[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (params: Connection) => void;
   onPaneClick: (event: React.MouseEvent) => void;
@@ -645,6 +647,7 @@ function FlowView({
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
+          onNodesDelete={onNodesDelete}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onPaneClick={onPaneClick}
@@ -749,12 +752,18 @@ function Flow() {
   const [physicalNodes, setPhysicalNodes, onPhysicalNodesChange] = useNodesState(initialPhysicalNodes);
   const [physicalEdges, setPhysicalEdges, onPhysicalEdgesChange] = useEdgesState(initialPhysicalEdges);
   
+  // PhysicalBlockのシリアル番号を管理
+  const [serialNumbers, setSerialNumbers] = useState<Record<string, number>>({});
+  
+  // PhysicalBlockのIDカウンターを管理
+  const physicalNodeIdCounter = useRef<number>(1);
+
   // 前回のノードIDを保持するref
   const prevNodeIdsRef = useRef<string[]>([]);
 
   // 選択されているノードタイプの状態管理
-  const [selectedFlowNodeType, setSelectedFlowNodeType] = useState(flowNodeTypes[0]);
-  const [selectedPhysicalNodeType, setSelectedPhysicalNodeType] = useState(physicalNodeTypes[0]);
+  const [selectedFlowNodeType, setSelectedFlowNodeType] = useState<FlowNodeType>(flowNodeTypes[0]);
+  const [selectedPhysicalNodeType, setSelectedPhysicalNodeType] = useState<PhysicalNodeType>(physicalNodeTypes[0]);
   const [activeView, setActiveView] = useState<ViewType>('flow');
   const [contextWindow, setContextWindow] = useState<{
     node: FlowNodeType;
@@ -774,6 +783,39 @@ function Flow() {
     flowNodeId: string;
     position: { x: number; y: number };
   } | null>(null);
+
+  // Physical Nodesの変更を監視
+  const prevPhysicalNodeIdsRef = useRef<string[]>([]);
+
+  useEffect(() => {
+    const currentPhysicalNodeIds = physicalNodes.map(node => node.id);
+    
+    // 削除されたPhysical Nodeを検出
+    const deletedPhysicalNodeIds = prevPhysicalNodeIdsRef.current.filter(
+      id => !currentPhysicalNodeIds.includes(id)
+    );
+    
+    // 削除されたPhysical Nodeがある場合、nodeRelationsを更新
+    if (deletedPhysicalNodeIds.length > 0) {
+      setNodeRelations(prevRelations => 
+        prevRelations.map(relation => ({
+          ...relation,
+          physicalNodeIds: relation.physicalNodeIds.filter(
+            id => !deletedPhysicalNodeIds.includes(id)
+          )
+        })).filter(relation => relation.physicalNodeIds.length > 0)
+      );
+      
+      // ハイライトもクリア
+      setHighlightedNodes({
+        flowNodeId: null,
+        physicalNodeIds: [],
+      });
+    }
+
+    // 現在のPhysical NodeのIDを保存
+    prevPhysicalNodeIdsRef.current = currentPhysicalNodeIds;
+  }, [physicalNodes]);
 
   // flowNodesの変更を監視して、削除されたノードを検出
   useEffect(() => {
@@ -874,6 +916,10 @@ function Flow() {
     requestAnimationFrame(updateNodes);
   }, [highlightedNodes, handleNodeHover, setFlowNodes, setPhysicalNodes]);
 
+  const onNodesDelete = useCallback((deleted: Node[]) => {
+    console.log('削除されたノード', deleted);      // ←ここで DB 更新やログ出力など
+  }, []);
+
   // ノードのダブルクリック処理
   const onNodeDoubleClick = useCallback((event: React.MouseEvent, node: Node<NodeData>) => {
     event.preventDefault();
@@ -973,26 +1019,26 @@ function Flow() {
 
     // シリアル番号生成
     const getNextSerialNumber = (typeId: string): string => {
-      const typeNodes = physicalNodes.filter(n => n.type === typeId);
-      const existingNumbers = typeNodes
-        .map(n => {
-          const match = n.data.label.match(/-(\d{3})$/);
-          return match ? parseInt(match[1], 10) : 0;
-        })
-        .filter(n => !isNaN(n));
+      // 現在のシリアル番号を取得または初期化
+      const currentNumber = serialNumbers[typeId] || 0;
+      const nextNumber = currentNumber + 1;
+      
+      // シリアル番号を更新
+      setSerialNumbers(prev => ({
+        ...prev,
+        [typeId]: nextNumber
+      }));
 
-      if (existingNumbers.length === 0) {
-        return '001';
-      }
-
-      const maxNumber = Math.max(...existingNumbers);
-      return String(maxNumber + 1).padStart(3, '0');
+      return String(nextNumber).padStart(3, '0');
     };
 
     const serialNumber = getNextSerialNumber(nodeType.id);
     const nodeLabel = `${nodeType.label}-${serialNumber}`;
 
-    // 新規Physical Nodeの作成
+    // 新規Physical Nodeの作成（一意のIDを生成）
+    const newNodeId = `p${physicalNodeIdCounter.current}`;
+    physicalNodeIdCounter.current += 1;
+
     const newPhysicalNode: Node<NodeData> = {
       id: `p${physicalNodes.length + 1}`,
       position: {

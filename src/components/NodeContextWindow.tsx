@@ -43,7 +43,7 @@ const NodeContextWindow: React.FC<NodeContextWindowProps> = ({
     <div
       ref={windowRef}
       style={{
-        position: 'absolute',
+        position: 'fixed',
         left: position.x,
         top: position.y,
         backgroundColor: 'white',
