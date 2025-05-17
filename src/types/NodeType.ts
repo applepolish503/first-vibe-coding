@@ -1,7 +1,9 @@
+import { NodeBase } from '@xyflow/react';
+
 /**
  * ノードタイプの定義インターフェース
  */
-export interface NodeType {
+export interface FlowNodeType {
   /** ノードの一意識別子 */
   id: string;
   /** ノードの表示名 */
@@ -18,6 +20,8 @@ export interface NodeType {
   description: string;
   /** ノードのカテゴリ */
   category: string;
+  /** 割り当て可能なPhysicalノードタイプのID配列 */
+  allowedPhysicalTypes: string[];
 }
 
 export interface NodeData {
@@ -25,6 +29,10 @@ export interface NodeData {
   icon?: string;
   isHighlighted?: boolean;
   dimmed?: boolean;
+  onNodeHover?: (nodeType: string | null) => void;
+  allowedPhysicalTypes?: string[];
+  data?: Record<string, unknown>;
+  [key: string]: unknown;
 }
 
 /**

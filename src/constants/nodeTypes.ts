@@ -1,54 +1,59 @@
-import type { NodeType } from '../types/NodeType';
+import type { FlowNodeType } from '../types/NodeType';
 
-export const nodeTypes: NodeType[] = [
+export const flowNodeTypes: FlowNodeType[] = [
   {
     id: 'truckSource',
     label: 'Truck Source',
-    backgroundColor: '#6ede87',
+    backgroundColor: '#4CAF50',
     hasInput: false,
     hasOutput: true,
     icon: '/icons/TruckSource.svg',
-    description: 'トラックの発生点となるノード',
-    category: '入力'
+    description: 'トラックの発着点',
+    category: 'Source',
+    allowedPhysicalTypes: ['warehouse']
   },
   {
     id: 'parking',
     label: 'Parking',
-    backgroundColor: '#4a90e2',
+    backgroundColor: '#2196F3',
     hasInput: true,
     hasOutput: true,
     icon: '/icons/Parking.svg',
-    description: 'トラックの一時駐車場',
-    category: 'Processes'
+    description: '一時駐車場',
+    category: 'Area',
+    allowedPhysicalTypes: ['carStop']
   },
   {
     id: 'truckBay',
     label: 'Truck Bay',
-    backgroundColor: '#4a90e2',
+    backgroundColor: '#FF9800',
     hasInput: true,
     hasOutput: true,
     icon: '/icons/TruckBay.svg',
-    description: 'トラックの荷積み・荷降ろし場所',
-    category: 'Processes'
+    description: 'トラックベイ',
+    category: 'Area',
+    allowedPhysicalTypes: ['carStop']
   },
   {
     id: 'tmpStorage',
     label: 'Temporary Storage',
-    backgroundColor: '#4a90e2',
+    backgroundColor: '#9C27B0',
     hasInput: true,
     hasOutput: true,
     icon: '/icons/TmpStorage.svg',
     description: '一時保管場所',
-    category: 'Processes'
+    category: 'Storage',
+    allowedPhysicalTypes: ['pallet']
   },
   {
     id: 'destinations',
     label: 'Destinations',
-    backgroundColor: '#6865A5',
+    backgroundColor: '#E91E63',
     hasInput: true,
     hasOutput: false,
     icon: '/icons/Destinations.svg',
-    description: '配送先となるノード',
-    category: 'Output'
-  },
+    description: '配送先',
+    category: 'Destination',
+    allowedPhysicalTypes: []
+  }
 ]; 
