@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { Node, Edge } from '@xyflow/react';
 import type { NodeData } from '../types/NodeType';
 import { theme } from '../styles/theme';
+import HelpModal from './HelpModal';
 
 interface HeaderProps {
   flowNodes: Node<NodeData>[];
@@ -39,6 +40,8 @@ const Header: React.FC<HeaderProps> = ({
   nodeRelations,
   onFileUpload,
 }) => {
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+
   // ダウンロード処理
   const handleDownload = (data: any, filename: string) => {
     const jsonString = JSON.stringify(data, null, 2);
@@ -250,6 +253,35 @@ const Header: React.FC<HeaderProps> = ({
           style={{ display: 'none' }}
         />
       </label>
+
+      {/* Help button */}
+      <button
+        onClick={() => setIsHelpModalOpen(true)}
+        style={{
+          ...buttonBaseStyle,
+          backgroundColor: theme.colors.accent.blue,
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = theme.colors.primary;
+          e.currentTarget.style.transform = 'translateY(-1px)';
+          e.currentTarget.style.boxShadow = theme.common.shadow.md;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = theme.colors.accent.blue;
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = theme.common.shadow.sm;
+        }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-1.5a8.5 8.5 0 100-17 8.5 8.5 0 000 17zM11 7h2v2h-2V7zm0 4h2v6h-2v-6z"/>
+        </svg>
+        Help
+      </button>
+
+      <HelpModal
+        isOpen={isHelpModalOpen}
+        onClose={() => setIsHelpModalOpen(false)}
+      />
     </div>
   );
 };
