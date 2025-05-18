@@ -22,11 +22,14 @@ jobs:
       - name: 📦 Setup Node
         uses: actions/setup-node@v4 # 最新 v4.4.0 系 :contentReference[oaicite:1]{index=1}
         with:
-          node-version: lts/*       # いつでも LTS
+          node-version: '20'
 
       - name: 📥 Install deps
-        run: npm ci                 # lock ファイルがある場合
+        # run: npm ci                 # lock ファイルがある場合
         # run: npm install          # lock 無い場合はこちら
+        run: npm install --no-audit --no-fund
+        run: npm run build
+
 
       - name: 🛠️ Build with Vite
         run: npm run build          # → dist/
