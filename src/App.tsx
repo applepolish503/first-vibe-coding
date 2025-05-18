@@ -90,16 +90,16 @@ const CustomNode = ({ data, type = 'default' }: CustomNodeProps) => {
   return (
     <div 
       style={{
-        position: 'relative',
-        width: '128px',
-        height: '128px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'none',
-        border: 'none',
-        padding: 0,
-        cursor: 'move',
+      position: 'relative',
+      width: '128px',
+      height: '128px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'none',
+      border: 'none',
+      padding: 0,
+      cursor: 'move',
       }} 
       className="node-highlight-container react-flow__node-default"
       onMouseEnter={handleMouseEnter}
@@ -363,25 +363,25 @@ const initialFlowNodes: Node<NodeData>[] = [
   },
   {
     id: 'f2',
-    position: { x: 300, y: 100 },
+    position: { x: 500, y: 100 },
     data: { label: 'Parking' },
     type: 'parking',
   },
   {
     id: 'f3',
-    position: { x: 500, y: 100 },
+    position: { x: 900, y: 100 },
     data: { label: 'Truck Bay' },
     type: 'truckBay',
   },
   {
     id: 'f4',
-    position: { x: 700, y: 100 },
+    position: { x: 1300, y: 100 },
     data: { label: 'Temporary Storage' },
     type: 'tmpStorage',
   },
   {
     id: 'f5',
-    position: { x: 900, y: 100 },
+    position: { x: 1700, y: 100 },
     data: { label: 'Destinations' },
     type: 'destinations',
   },
@@ -400,14 +400,7 @@ const initialFlowEdges: Edge[] = [
 /**
  * Physical Viewの初期ノード設定
  */
-const initialPhysicalNodes: Node<NodeData>[] = [
-  {
-    id: 'phy1',
-    position: { x: 100, y: 50 },
-    data: { label: 'Warehouse' },
-    type: 'warehouse',
-  },
-];
+const initialPhysicalNodes: Node<NodeData>[] = [];
 
 /**
  * Physical Viewの初期エッジ設定
@@ -433,7 +426,9 @@ type NodeAssignmentModalProps = {
   position: { x: number; y: number };
   existingAssignments: string[];
   flowNodeId: string;
-  physicalNodes: Node[];
+  flowNodes: Node<NodeData>[];
+  physicalNodes: Node<NodeData>[];
+  onAssignExisting: (physicalNodeId: string) => void;
 };
 
 /**
@@ -447,14 +442,17 @@ const NodeAssignmentModal: React.FC<NodeAssignmentModalProps> = ({
   position, 
   existingAssignments,
   flowNodeId,
-  physicalNodes
+  flowNodes,
+  physicalNodes,
+  onAssignExisting
 }) => {
   const [selectedType, setSelectedType] = useState<FlowNodeType | null>(null);
   const [assignedNodes, setAssignedNodes] = useState<Node<NodeData>[]>([]);
+  const [unassignedNodes, setUnassignedNodes] = useState<Node<NodeData>[]>([]);
 
   // 現在のFlowノードの取得
   const currentFlowNode = useCallback(() => {
-    const flowNode = initialFlowNodes.find(fn => fn.id === flowNodeId);
+    const flowNode = flowNodes.find(fn => fn.id === flowNodeId);
     if (!flowNode) return null;
 
     // ノードタイプの定義を取得
@@ -467,23 +465,31 @@ const NodeAssignmentModal: React.FC<NodeAssignmentModalProps> = ({
       position: flowNode.position,
       data: {
         ...flowNode.data,
-        allowedPhysicalTypes: nodeTypeInfo.allowedPhysicalTypes
+        allowedPhysicalTypes: flowNode.data.allowedPhysicalTypes || nodeTypeInfo.allowedPhysicalTypes
       }
     };
-  }, [flowNodeId])();
+  }, [flowNodeId, flowNodes])();
 
   // 選択可能なPhysicalノードタイプのフィルタリング
   const availablePhysicalTypes = physicalNodeTypes.filter(
     type => currentFlowNode?.allowedPhysicalTypes?.includes(type.id)
   );
 
-  // 割り当て済みノードの情報を取得
+  // 割り当て済みノードと未割り当てノードの情報を取得
   useEffect(() => {
-    const nodes = existingAssignments
+    const assigned = existingAssignments
       .map(id => physicalNodes.find((n) => n.id === id))
       .filter((n): n is Node<NodeData> => n !== undefined);
-    setAssignedNodes(nodes);
-  }, [existingAssignments, physicalNodes]);
+    setAssignedNodes(assigned);
+
+    // 未割り当てノードを取得
+    const unassigned = physicalNodes.filter(node => {
+      const isAllowedType = currentFlowNode?.allowedPhysicalTypes?.includes(node.type || '');
+      const isNotAssigned = !existingAssignments.includes(node.id);
+      return isAllowedType && isNotAssigned;
+    });
+    setUnassignedNodes(unassigned);
+  }, [existingAssignments, physicalNodes, currentFlowNode]);
 
   return (
     <div
@@ -530,6 +536,80 @@ const NodeAssignmentModal: React.FC<NodeAssignmentModalProps> = ({
         </div>
       </div>
 
+      {/* 未割り当ての物理ノードリスト */}
+      <div style={{ marginBottom: '20px' }}>
+        <h4 style={{ 
+          marginTop: 0, 
+          marginBottom: '8px', 
+          fontSize: '14px',
+          color: theme.colors.text.primary
+        }}>Available Physical Blocks</h4>
+        {unassignedNodes.length > 0 ? (
+          <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+            {unassignedNodes.map(node => (
+              <div
+                key={node.id}
+                style={{
+                  padding: '8px',
+                  margin: '4px 0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  backgroundColor: theme.colors.background.secondary,
+                  borderRadius: theme.common.borderRadius.md,
+                  border: `1px solid ${theme.colors.border.primary}`,
+                }}
+              >
+                <div style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}>
+                  <img src={physicalNodeTypes.find(t => t.id === node.type)?.icon} alt={node.data?.label} style={{ width: '24px', height: '24px' }} />
+                  <span>{node.data?.label}</span>
+                </div>
+                <button
+                  onClick={() => onAssignExisting(node.id)}
+                  style={{
+                    padding: '4px 8px',
+                    border: `1px solid ${theme.colors.accent.blue}`,
+                    borderRadius: theme.common.borderRadius.sm,
+                    backgroundColor: theme.colors.accent.blue,
+                    color: theme.colors.text.primary,
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = theme.colors.background.tertiary;
+                    e.currentTarget.style.borderColor = theme.colors.accent.blue;
+                    e.currentTarget.style.color = theme.colors.accent.blue;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = theme.colors.accent.blue;
+                    e.currentTarget.style.borderColor = theme.colors.accent.blue;
+                    e.currentTarget.style.color = theme.colors.text.primary;
+                  }}
+                >
+                  Assign
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ 
+            padding: '12px', 
+            textAlign: 'center', 
+            color: theme.colors.text.secondary,
+            backgroundColor: theme.colors.background.tertiary,
+            borderRadius: theme.common.borderRadius.md
+          }}>
+            No available physical blocks
+          </div>
+        )}
+      </div>
+
       {/* 新規割り当て用のノードタイプ選択 */}
       <div style={{ marginBottom: '20px' }}>
         <h4 style={{ 
@@ -537,9 +617,9 @@ const NodeAssignmentModal: React.FC<NodeAssignmentModalProps> = ({
           marginBottom: '8px', 
           fontSize: '14px',
           color: theme.colors.text.primary
-        }}>New Assignment</h4>
+        }}>Create New Physical Block</h4>
         {availablePhysicalTypes.length > 0 ? (
-          <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+          <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
             {availablePhysicalTypes.map(type => (
               <div
                 key={type.id}
@@ -592,7 +672,7 @@ const NodeAssignmentModal: React.FC<NodeAssignmentModalProps> = ({
                     e.currentTarget.style.color = theme.colors.text.primary;
                   }}
                 >
-                  Add
+                  Create
                 </button>
               </div>
             ))}
@@ -605,7 +685,7 @@ const NodeAssignmentModal: React.FC<NodeAssignmentModalProps> = ({
             backgroundColor: theme.colors.background.tertiary,
             borderRadius: theme.common.borderRadius.md
           }}>
-            No physical blocks available for assignment
+            No physical blocks available for creation
           </div>
         )}
       </div>
@@ -931,10 +1011,10 @@ function Flow() {
   // ノード間の関係性管理
   const [nodeRelations, setNodeRelations] = useState<NodeRelation[]>([]);
   const [highlightedNodes, setHighlightedNodes] = useState<{
-    flowNodeId: string | null;
+    flowNodeIds: string[];  // 複数のフローノードに対応
     physicalNodeIds: string[];
   }>({
-    flowNodeId: null,
+    flowNodeIds: [],
     physicalNodeIds: [],
   });
   const [showAssignmentModal, setShowAssignmentModal] = useState<{
@@ -966,7 +1046,7 @@ function Flow() {
       
       // ハイライトもクリア
       setHighlightedNodes({
-        flowNodeId: null,
+        flowNodeIds: [],
         physicalNodeIds: [],
       });
     }
@@ -991,7 +1071,7 @@ function Flow() {
       );
       // ハイライトもクリア
       setHighlightedNodes({
-        flowNodeId: null,
+        flowNodeIds: [],
         physicalNodeIds: [],
       });
     }
@@ -1005,7 +1085,7 @@ function Flow() {
     if (!nodeId) {
       requestAnimationFrame(() => {
         setHighlightedNodes({
-          flowNodeId: null,
+          flowNodeIds: [],
           physicalNodeIds: [],
         });
       });
@@ -1014,28 +1094,40 @@ function Flow() {
 
     requestAnimationFrame(() => {
       if (isFlow) {
+        // フローノードにホバーした場合
         const relation = nodeRelations.find(rel => rel.flowNodeId === nodeId);
         if (relation) {
           setHighlightedNodes({
-            flowNodeId: nodeId,
+            flowNodeIds: [nodeId],
             physicalNodeIds: relation.physicalNodeIds,
           });
         } else {
           setHighlightedNodes({
-            flowNodeId: null,
+            flowNodeIds: [],
             physicalNodeIds: [],
           });
         }
       } else {
-        const relation = nodeRelations.find(rel => rel.physicalNodeIds.includes(nodeId));
-        if (relation) {
+        // 物理ノードにホバーした場合
+        const relatedFlowNodes = nodeRelations.filter(rel => 
+          rel.physicalNodeIds.includes(nodeId)
+        );
+        
+        if (relatedFlowNodes.length > 0) {
+          // 関連するすべてのフローノードとその物理ノードをハイライト
+          const allPhysicalNodeIds = new Set<string>();
+          relatedFlowNodes.forEach(rel => {
+            rel.physicalNodeIds.forEach(id => allPhysicalNodeIds.add(id));
+          });
+
           setHighlightedNodes({
-            flowNodeId: relation.flowNodeId,
-            physicalNodeIds: relation.physicalNodeIds,
+            // 複数のフローノードをハイライトするために配列として扱う
+            flowNodeIds: relatedFlowNodes.map(rel => rel.flowNodeId),
+            physicalNodeIds: Array.from(allPhysicalNodeIds),
           });
         } else {
           setHighlightedNodes({
-            flowNodeId: null,
+            flowNodeIds: [],
             physicalNodeIds: [],
           });
         }
@@ -1051,8 +1143,8 @@ function Flow() {
           ...node,
           data: {
             ...node.data,
-            isHighlighted: node.id === highlightedNodes.flowNodeId,
-            dimmed: highlightedNodes.flowNodeId !== null && node.id !== highlightedNodes.flowNodeId,
+            isHighlighted: highlightedNodes.flowNodeIds.includes(node.id),
+            dimmed: highlightedNodes.flowNodeIds.length > 0 && !highlightedNodes.flowNodeIds.includes(node.id),
             onNodeHover: (nodeType: string | null) => handleNodeHover(node.id, true),
           },
         }))
@@ -1064,7 +1156,7 @@ function Flow() {
           data: {
             ...node.data,
             isHighlighted: highlightedNodes.physicalNodeIds.includes(node.id),
-            dimmed: highlightedNodes.flowNodeId !== null && !highlightedNodes.physicalNodeIds.includes(node.id),
+            dimmed: highlightedNodes.physicalNodeIds.length > 0 && !highlightedNodes.physicalNodeIds.includes(node.id),
             onNodeHover: (nodeType: string | null) => handleNodeHover(node.id, false),
           },
         }))
@@ -1075,7 +1167,34 @@ function Flow() {
   }, [highlightedNodes, handleNodeHover, setFlowNodes, setPhysicalNodes]);
 
   const onNodesDelete = useCallback((deleted: Node[]) => {
-    console.log('削除されたノード', deleted);      // ←ここで DB 更新やログ出力など
+    // 削除されたノードがフローノードか物理ノードかを判定
+    deleted.forEach(node => {
+      const isFlowNode = flowNodeTypes.some(type => type.id === node.type);
+      const isPhysicalNode = physicalNodeTypes.some(type => type.id === node.type);
+
+      if (isFlowNode) {
+        // フローノードが削除された場合、関連する関係性を削除
+        setNodeRelations(prevRelations => 
+          prevRelations.filter(relation => relation.flowNodeId !== node.id)
+        );
+      } else if (isPhysicalNode) {
+        // 物理ノードが削除された場合、関係性から該当する物理ノードIDを削除
+        setNodeRelations(prevRelations => 
+          prevRelations.map(relation => ({
+            ...relation,
+            physicalNodeIds: relation.physicalNodeIds.filter(id => id !== node.id)
+          })).filter(relation => relation.physicalNodeIds.length > 0)
+        );
+      }
+    });
+
+    // ハイライトをクリア
+    setHighlightedNodes({
+      flowNodeIds: [],
+      physicalNodeIds: [],
+    });
+
+    console.log('削除されたノード', deleted);
   }, []);
 
   // ノードのダブルクリック処理
@@ -1089,14 +1208,14 @@ function Flow() {
       setShowAssignmentModal({
         flowNodeId: node.id,
         position: {
-          x: event.clientX,
-          y: event.clientY,
+      x: event.clientX,
+      y: event.clientY,
         },
       });
       
       if (relation) {
         setHighlightedNodes({
-          flowNodeId: node.id,
+          flowNodeIds: [node.id],
           physicalNodeIds: relation.physicalNodeIds,
         });
       }
@@ -1104,10 +1223,10 @@ function Flow() {
       // Physical Viewのノードがダブルクリックされた場合
       const relation = nodeRelations.find(rel => rel.physicalNodeIds.includes(node.id));
       if (relation) {
-        setHighlightedNodes({
-          flowNodeId: relation.flowNodeId,
-          physicalNodeIds: relation.physicalNodeIds,
-        });
+                  setHighlightedNodes({
+            flowNodeIds: [relation.flowNodeId],
+            physicalNodeIds: relation.physicalNodeIds,
+          });
       }
     }
   }, [nodeRelations]);
@@ -1160,7 +1279,7 @@ function Flow() {
       
       if (!isModalClick && !isNodeClick) {
         requestAnimationFrame(() => {
-          setHighlightedNodes({ flowNodeId: null, physicalNodeIds: [] });
+          setHighlightedNodes({ flowNodeIds: [], physicalNodeIds: [] });
         });
       }
     };
@@ -1236,7 +1355,7 @@ function Flow() {
     }
 
     setHighlightedNodes({
-      flowNodeId: showAssignmentModal.flowNodeId,
+      flowNodeIds: showAssignmentModal.flowNodeId ? [showAssignmentModal.flowNodeId] : [],
       physicalNodeIds: existingRelation 
         ? [...existingRelation.physicalNodeIds, newPhysicalNode.id]
         : [newPhysicalNode.id],
@@ -1256,16 +1375,51 @@ function Flow() {
     );
 
     setHighlightedNodes(prev => ({
-      flowNodeId: prev.flowNodeId,
+      flowNodeIds: prev.flowNodeIds.filter(id => id !== physicalNodeId),
       physicalNodeIds: prev.physicalNodeIds.filter(id => id !== physicalNodeId),
     }));
   }, [showAssignmentModal]);
+
+  // 既存の物理ノードを割り当てる処理
+  const handleAssignExisting = useCallback((physicalNodeId: string) => {
+    if (!showAssignmentModal) return;
+
+    // 既存の関係性を確認
+    const existingRelation = nodeRelations.find(rel => rel.flowNodeId === showAssignmentModal.flowNodeId);
+    
+    if (existingRelation) {
+      // 既存の関係性に新しいノードを追加
+      setNodeRelations(relations =>
+        relations.map(rel =>
+          rel.flowNodeId === showAssignmentModal.flowNodeId
+            ? { ...rel, physicalNodeIds: [...rel.physicalNodeIds, physicalNodeId] }
+            : rel
+        )
+      );
+    } else {
+      // 新しい関係性を作成
+      setNodeRelations(relations => [
+        ...relations,
+        {
+          flowNodeId: showAssignmentModal.flowNodeId,
+          physicalNodeIds: [physicalNodeId],
+        },
+      ]);
+    }
+
+    setHighlightedNodes({
+      flowNodeIds: showAssignmentModal.flowNodeId ? [showAssignmentModal.flowNodeId] : [],
+      physicalNodeIds: existingRelation 
+        ? [...existingRelation.physicalNodeIds, physicalNodeId]
+        : [physicalNodeId],
+    });
+  }, [showAssignmentModal, nodeRelations]);
 
   // ペインにマウスが入った時のハイライト消去
   const handlePaneMouseEnter = useCallback(() => {
     requestAnimationFrame(() => {
       setHighlightedNodes({
-        flowNodeId: null,
+        flowNodeIds: [],
         physicalNodeIds: [],
       });
     });
@@ -1285,7 +1439,7 @@ function Flow() {
     );
     // ハイライトもクリア
     setHighlightedNodes({
-      flowNodeId: null,
+      flowNodeIds: [],
       physicalNodeIds: [],
     });
   }, []);
@@ -1297,20 +1451,50 @@ function Flow() {
     relations?: { flowNodeId: string; physicalNodeIds: string[] }[];
   }) => {
     if (data.flow) {
-      setFlowNodes(data.flow.nodes);
+      // フローノードのデータを正規化
+      const normalizedFlowNodes = data.flow.nodes.map(node => {
+        const nodeType = flowNodeTypes.find(type => type.id === node.type);
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            label: node.data.label || nodeType?.label || '',
+            icon: node.data.icon || nodeType?.icon || '',
+            allowedPhysicalTypes: nodeType?.allowedPhysicalTypes || [],
+          },
+        };
+      });
+      setFlowNodes(normalizedFlowNodes);
       setFlowEdges(data.flow.edges);
+      // initialFlowNodesも更新
+      initialFlowNodes.length = 0;
+      initialFlowNodes.push(...normalizedFlowNodes);
     }
+    
     if (data.physical) {
-      setPhysicalNodes(data.physical.nodes);
+      // 物理ノードのデータを正規化
+      const normalizedPhysicalNodes = data.physical.nodes.map(node => {
+        const nodeType = physicalNodeTypes.find(type => type.id === node.type);
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            label: node.data.label || nodeType?.label || '',
+            icon: node.data.icon || nodeType?.icon || '',
+          },
+        };
+      });
+      setPhysicalNodes(normalizedPhysicalNodes);
       setPhysicalEdges(data.physical.edges);
     }
+    
     if (data.relations) {
       setNodeRelations(data.relations);
     }
   }, [setFlowNodes, setFlowEdges, setPhysicalNodes, setPhysicalEdges]);
 
   return (
-    <div style={{ 
+      <div style={{
       width: '100vw', 
       height: '100vh', 
       display: 'flex',
@@ -1375,7 +1559,7 @@ function Flow() {
             isActive={activeView === 'flow'}
             onPaneMouseEnter={handlePaneMouseEnter}
           />
-        </div>
+      </div>
         <div onClick={() => setActiveView('physical')}>
           <PhysicalView
             nodes={physicalNodes}
@@ -1411,7 +1595,9 @@ function Flow() {
             nodeRelations.find(rel => rel.flowNodeId === showAssignmentModal.flowNodeId)?.physicalNodeIds || []
           }
           flowNodeId={showAssignmentModal.flowNodeId}
+          flowNodes={flowNodes}
           physicalNodes={physicalNodes}
+          onAssignExisting={handleAssignExisting}
         />
       )}
     </div>
@@ -1423,7 +1609,7 @@ function Flow() {
  */
 function FlowWithProvider() {
   return (
-    <Flow />
+      <Flow />
   );
 }
 
