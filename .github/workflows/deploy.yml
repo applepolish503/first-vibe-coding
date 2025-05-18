@@ -29,6 +29,7 @@ jobs:
         # run: npm install          # lock 無い場合はこちら
         run: npm install --no-audit --no-fund
 
+      - run: npm install -D @rollup/rollup-linux-x64-gnu
 
       - name: 🛠️ Build with Vite
         run: npm run build          # → dist/
