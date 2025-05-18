@@ -1,0 +1,44 @@
+# .github/workflows/deploy.yml
+name: Deploy Vite site to GitHub Pages
+
+on:
+  push:
+    branches: [main]           # main に push されたら毎回デプロイ
+  workflow_dispatch:           # 手動トリガーも可
+
+permissions:
+  contents: read               # Pages が必要とする最低権限
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v4   # 最新 v4.x 系
+
+      - name: 📦 Setup Node
+        uses: actions/setup-node@v4 # 最新 v4.4.0 系 :contentReference[oaicite:1]{index=1}
+        with:
+          node-version: lts/*       # いつでも LTS
+
+      - name: 📥 Install deps
+        run: npm ci                 # lock ファイルがある場合
+        # run: npm install          # lock 無い場合はこちら
+
+      - name: 🛠️ Build with Vite
+        run: npm run build          # → dist/
+
+      - name: 🗜️ Upload artifact
+        uses: actions/upload-pages-artifact@v3.0.1   # 最新 v3 系 :contentReference[oaicite:2]{index=2}
+        with:
+          path: ./dist
+
+      - name: ⚙️ Configure Pages
+        uses: actions/configure-pages@v5             # 最新 v5 系 :contentReference[oaicite:3]{index=3}
+
+      - name: 🚀 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4.0.5            # 最新 v4 系 :contentReference[oaicite:4]{index=4}
