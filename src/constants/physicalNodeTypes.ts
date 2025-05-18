@@ -7,7 +7,7 @@ export const physicalNodeTypes: FlowNodeType[] = [
     backgroundColor: '#4CAF50',
     hasInput: false,
     hasOutput: false,
-    icon: '/icons/Warehouse.svg',
+    icon: 'icons/Warehouse.svg',
     description: '商品を保管する倉庫',
     category: 'Facility'
   },
@@ -17,7 +17,7 @@ export const physicalNodeTypes: FlowNodeType[] = [
     backgroundColor: '#2196F3',
     hasInput: false,
     hasOutput: false,
-    icon: '/icons/CarStop.svg',
+    icon: 'icons/CarStop.svg',
     description: 'CarStop',
     category: 'Facility'
   },
@@ -27,7 +27,7 @@ export const physicalNodeTypes: FlowNodeType[] = [
     backgroundColor: '#FF9800',
     hasInput: false,
     hasOutput: false,
-    icon: '/icons/Pallet.svg',
+    icon: 'icons/Pallet.svg',
     description: 'パレット置き場',
     category: 'Facility'
   },
@@ -37,7 +37,7 @@ export const physicalNodeTypes: FlowNodeType[] = [
     backgroundColor: '#673AB7',
     hasInput: false,
     hasOutput: false,
-    icon: './icons/Gate.svg',
+    icon: 'icons/Gate.svg',
     description: '施設の出入口ゲート',
     category: 'Facility'
   }
