@@ -1041,7 +1041,8 @@ function Flow() {
           physicalNodeIds: relation.physicalNodeIds.filter(
             id => !deletedPhysicalNodeIds.includes(id)
           )
-        })).filter(relation => relation.physicalNodeIds.length > 0)
+        }))
+        // Don't filter out relations with empty physicalNodeIds - keep the relation for potential future assignments
       );
       
       // ハイライトもクリア
@@ -1183,7 +1184,8 @@ function Flow() {
           prevRelations.map(relation => ({
             ...relation,
             physicalNodeIds: relation.physicalNodeIds.filter(id => id !== node.id)
-          })).filter(relation => relation.physicalNodeIds.length > 0)
+          }))
+          // Don't filter out relations with empty physicalNodeIds - keep the relation for potential future assignments
         );
       }
     });
